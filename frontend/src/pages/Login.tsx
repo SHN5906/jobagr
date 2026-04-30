@@ -1,15 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import Navbar from '../components/Navbar'
 
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [error, setError]       = useState('')
+  const [loading, setLoading]   = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -19,55 +18,157 @@ export default function Login() {
       await login({ email, password })
       navigate('/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError(err instanceof Error ? err.message : 'Échec de la connexion')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="flex items-center justify-center py-20 px-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-8 w-full max-w-md">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Sign in</h2>
+    <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
+
+      {/* ── Left panel — branding ─────────────────────────── */}
+      <div
+        className="hidden lg:flex w-[45%] relative overflow-hidden flex-col justify-between p-14"
+        style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--border)' }}
+      >
+        <div className="bg-grid absolute inset-0 opacity-25" />
+        <div
+          className="absolute pointer-events-none rounded-full"
+          style={{
+            width: 480, height: 480,
+            bottom: -100, left: -100,
+            background: 'radial-gradient(circle, rgba(200,255,62,0.08) 0%, transparent 65%)',
+          }}
+        />
+
+        {/* Logo */}
+        <Link
+          to="/"
+          className="relative z-10 font-display font-extrabold text-base tracking-widest"
+          style={{ color: 'var(--accent)', letterSpacing: '0.12em' }}
+        >
+          JOBRYX
+        </Link>
+
+        {/* Quote */}
+        <div className="relative z-10">
+          <p
+            className="font-display font-bold leading-tight"
+            style={{ fontSize: 'clamp(1.8rem, 3vw, 2.8rem)', color: 'var(--text)' }}
+          >
+            Ton prochain poste<br />
+            est à portée<br />
+            <span style={{ color: 'var(--accent)' }}>de clic.</span>
+          </p>
+          <p className="mt-5 text-sm" style={{ color: 'var(--text-3)' }}>
+            Des milliers d'offres tech, agrégées.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Right panel — form ────────────────────────────── */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-sm anim-fade-up">
+
+          {/* Mobile logo */}
+          <Link
+            to="/"
+            className="lg:hidden block mb-10 font-display font-extrabold text-base tracking-widest"
+            style={{ color: 'var(--accent)', letterSpacing: '0.12em' }}
+          >
+            JOBRYX
+          </Link>
+
+          <h2 className="font-display font-bold text-2xl" style={{ color: 'var(--text)' }}>
+            Bon retour
+          </h2>
+          <p className="mt-2 text-sm" style={{ color: 'var(--text-2)' }}>
+            Connecte-toi à ton compte
+          </p>
+
+          {/* Error */}
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <div
+              className="mt-6 text-sm rounded-lg px-4 py-3"
+              style={{
+                background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.25)',
+                color: '#F87171',
+              }}
+            >
               {error}
-            </p>
+            </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label
+                className="block font-mono text-[10px] uppercase tracking-[0.15em] mb-2"
+                style={{ color: 'var(--text-3)' }}
+              >
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="toi@example.com"
+                className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
+                style={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text)',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                onBlur={e  => (e.currentTarget.style.borderColor = 'var(--border)')}
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label
+                className="block font-mono text-[10px] uppercase tracking-[0.15em] mb-2"
+                style={{ color: 'var(--text-3)' }}
+              >
+                Mot de passe
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="••••••••"
+                className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
+                style={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text)',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                onBlur={e  => (e.currentTarget.style.borderColor = 'var(--border)')}
               />
             </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="mt-1 w-full py-3 rounded-lg text-sm font-display font-bold tracking-wide transition-opacity hover:opacity-90 disabled:opacity-40"
+              style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Connexion…' : 'Se connecter'}
             </button>
           </form>
-          <p className="text-sm text-gray-500 mt-4 text-center">
-            No account?{' '}
-            <Link to="/register" className="text-indigo-600 hover:underline">Sign up</Link>
+
+          <p className="mt-6 text-sm text-center" style={{ color: 'var(--text-3)' }}>
+            Pas de compte ?{' '}
+            <Link
+              to="/register"
+              className="transition-opacity hover:opacity-80"
+              style={{ color: 'var(--accent)' }}
+            >
+              En créer un
+            </Link>
           </p>
         </div>
       </div>
