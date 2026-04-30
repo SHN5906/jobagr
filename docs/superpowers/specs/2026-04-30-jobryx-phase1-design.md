@@ -1,8 +1,24 @@
 # Jobryx — Phase 1 Design Spec
 
 **Date:** 2026-04-30
-**Team:** Rayane, Liam, Fael, Sohan
 **Repo:** git@github.com:EpitechBachelorPromo2028/B-YEP-200-NCE-2-1-jobaggregator-2.git
+
+---
+
+## Team & Responsibilities
+
+| Membre | Pôle | Responsabilités clés |
+|--------|------|----------------------|
+| **Sohan** | Frontend — UI/UX + Accessibilité + Produit | Auth UI, dashboard (data + IA visibles), search/filtres, page détail, admin UI, WCAG 2.1 AA + audit Lighthouse, wireframes, market scan |
+| **Rayane** | Backend + Cybersécurité | Auth flow (JWT/sessions), RBAC user/admin côté serveur, validation centralisée, middleware erreurs, protection injection + brute-force, secrets management, chiffrement transit/repos |
+| **Fael** | Backend — API REST + logique métier | Routes CRUD (offres, users, admin), endpoints trigger ingestion, endpoint feature data, endpoint feature IA, tests automatisés (min. 2 routes), codes HTTP propres |
+| **Liam** | Data — Ingestion + DB + Feature data | Intégration WeLoveDevs (1 req/s), pipeline ingestion + trigger manuel, normalisation/pré-processing, schéma DB + contraintes d'intégrité, feature data (viz / scoring / filtres avancés) |
+
+**Phase 1 ownership :**
+- **Sohan** → pages Register, Login, Dashboard placeholder, Navbar, ProtectedRoute, hook useAuth
+- **Rayane** → auth flow FastAPI (register/login/me), JWT, bcrypt, middleware erreurs, config secrets
+- **Fael** → structure backend (main.py, router, deps), route `/health`, conventions HTTP
+- **Liam** → schéma DB (SQLAlchemy models), migrations Alembic, docker-compose db service
 
 ---
 
