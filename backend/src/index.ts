@@ -3,9 +3,11 @@ import helmet from 'helmet';
 import cors from 'cors';
 
 import { config } from './config/env';
+import { prisma } from './services/prisma';
 import { apiLimiter } from './middleware/rateLimiter';
 import authRouter from './routes/auth';
 import jobsRouter from './routes/jobs';
+import adminRouter from './routes/admin';
 
 const app = express();
 
@@ -15,7 +17,7 @@ app.use(helmet());
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: config.corsOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
 }));
@@ -27,8 +29,9 @@ app.use(express.json({ limit: '16kb' }));
 app.use('/api', apiLimiter);
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/jobs', jobsRouter);
+app.use('/api/v1/auth',  authRouter);
+app.use('/api/v1/jobs',  jobsRouter);
+app.use('/api/v1/admin', adminRouter);
 
 // ─── Health check (unauthenticated) ──────────────────────────────────────────
 app.get('/health', (_req, res) => {
@@ -42,13 +45,22 @@ app.use((_req, res) => {
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  // Never leak stack traces in production
   const detail = config.nodeEnv === 'development' ? err.message : 'Internal server error.';
   console.error('[error]', err);
   res.status(500).json({ error: 'Internal server error', detail });
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   console.log(`[jobryx] Server running on http://localhost:${config.port} (${config.nodeEnv})`);
+});
+
+// Fermeture propre du pool Prisma à l'arrêt du process
+process.on('SIGTERM', async () => {
+  server.close();
+  await prisma.$disconnect();
+});
+process.on('SIGINT', async () => {
+  server.close();
+  await prisma.$disconnect();
 });
