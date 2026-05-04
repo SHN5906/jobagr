@@ -62,12 +62,11 @@ export default function Register() {
             className="font-display font-bold leading-tight"
             style={{ fontSize: 'clamp(1.8rem, 3vw, 2.8rem)', color: 'var(--text)' }}
           >
-            Rejoins des milliers<br />
-            de devs qui ont<br />
-            <span style={{ color: 'var(--accent)' }}>trouvé mieux.</span>
+            Trente secondes,<br />
+            <span style={{ color: 'var(--accent)' }}>c'est bon.</span>
           </p>
           <p className="mt-5 text-sm" style={{ color: 'var(--text-3)' }}>
-            Inscription gratuite, sans engagement.
+            Email, pseudo, mot de passe. On bouge pas plus loin.
           </p>
 
           {/* Decorative dots */}
@@ -96,10 +95,10 @@ export default function Register() {
           </Link>
 
           <h2 className="font-display font-bold text-2xl" style={{ color: 'var(--text)' }}>
-            Créer un compte
+            On y va.
           </h2>
           <p className="mt-2 text-sm" style={{ color: 'var(--text-2)' }}>
-            Commence à explorer les offres
+            Crée ton compte en 30 secondes.
           </p>
 
           {error && (

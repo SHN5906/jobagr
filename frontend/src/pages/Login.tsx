@@ -57,12 +57,12 @@ export default function Login() {
             className="font-display font-bold leading-tight"
             style={{ fontSize: 'clamp(1.8rem, 3vw, 2.8rem)', color: 'var(--text)' }}
           >
-            Ton prochain poste<br />
-            est à portée<br />
-            <span style={{ color: 'var(--accent)' }}>de clic.</span>
+            Reprends<br />
+            où tu t'es<br />
+            <span style={{ color: 'var(--accent)' }}>arrêté.</span>
           </p>
           <p className="mt-5 text-sm" style={{ color: 'var(--text-3)' }}>
-            Des milliers d'offres tech, agrégées.
+            Tes recherches, tes filtres, tes favoris.
           </p>
         </div>
       </div>
@@ -81,10 +81,10 @@ export default function Login() {
           </Link>
 
           <h2 className="font-display font-bold text-2xl" style={{ color: 'var(--text)' }}>
-            Bon retour
+            Connexion
           </h2>
           <p className="mt-2 text-sm" style={{ color: 'var(--text-2)' }}>
-            Connecte-toi à ton compte
+            On t'attendait.
           </p>
 
           {/* Error */}

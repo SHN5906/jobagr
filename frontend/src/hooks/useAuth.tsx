@@ -14,10 +14,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const DEMO_USER: User | null = import.meta.env.DEV
+    ? { id: 'demo', email: 'sohan@jobryx.dev', username: 'Sohan', role: 'user', is_active: true, created_at: new Date().toISOString() }
+    : null
+
+  const [user, setUser] = useState<User | null>(DEMO_USER)
+  const [loading, setLoading] = useState(!import.meta.env.DEV)
 
   useEffect(() => {
+    if (import.meta.env.DEV) return
     const token = localStorage.getItem('token')
     if (!token) { setLoading(false); return }
     apiClient.getMe(token)
