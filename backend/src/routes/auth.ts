@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 import { config } from '../config/env';
-import { userStore } from '../services/userStore';
+import { prisma } from '../services/prisma';
 import { requireAuth } from '../middleware/auth';
 import { handleValidation } from '../middleware/validate';
 import { authLimiter } from '../middleware/rateLimiter';
@@ -46,21 +46,31 @@ router.post(
   handleValidation,
   async (req: import('express').Request, res: import('express').Response) => {
     const { email, username, password } = req.body as {
-      email: string;
-      username: string;
-      password: string;
+      email: string; username: string; password: string;
     };
 
-    if (userStore.emailExists(email)) {
-      // Constant-time-ish response to avoid user enumeration
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ email }, { username }] },
+      select: { email: true, username: true },
+    });
+
+    if (existing?.email === email) {
       res.status(409).json({ error: 'Conflict', detail: 'An account with this email already exists.' });
+      return;
+    }
+    if (existing?.username === username) {
+      res.status(409).json({ error: 'Conflict', detail: 'This username is already taken.' });
       return;
     }
 
     const password_hash = await bcrypt.hash(password, config.bcryptRounds);
-    const user = userStore.create({ email, username, password_hash });
 
-    res.status(201).json({ message: 'Account created.', user: userStore.toPublic(user) });
+    const user = await prisma.user.create({
+      data: { email, username, password_hash },
+      select: { id: true, email: true, username: true, role: true, is_active: true, created_at: true },
+    });
+
+    res.status(201).json({ message: 'Account created.', user });
   }
 );
 
@@ -74,19 +84,18 @@ router.post(
   async (req: import('express').Request, res: import('express').Response) => {
     const { email, password } = req.body as { email: string; password: string };
 
-    const user = userStore.findByEmail(email);
+    const user = await prisma.user.findUnique({ where: { email } });
 
-    // Always run bcrypt.compare to prevent timing attacks even when user not found
+    // Always run bcrypt.compare — prevent timing attacks when user not found
     const dummy_hash = '$2b$12$invalidhashfortimingprotection000000000000000000000000';
-    const hash = user?.password_hash ?? dummy_hash;
-    const match = await bcrypt.compare(password, hash);
+    const match = await bcrypt.compare(password, user?.password_hash ?? dummy_hash);
 
     if (!user || !match || !user.is_active) {
       res.status(401).json({ error: 'Unauthorized', detail: 'Invalid credentials.' });
       return;
     }
 
-    const payload: TokenPayload = { sub: user.id, email: user.email, role: user.role };
+    const payload: TokenPayload = { sub: user.id, email: user.email, role: user.role as TokenPayload['role'] };
     const access_token = jwt.sign(payload, config.jwtSecret, {
       expiresIn: config.jwtExpiresIn as any,
       algorithm: 'HS256',
@@ -98,15 +107,18 @@ router.post(
 
 // ─── GET /api/v1/auth/me ─────────────────────────────────────────────────────
 
-router.get('/me', requireAuth, (req, res) => {
-  const user = userStore.findById(req.user!.sub);
+router.get('/me', requireAuth, async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user!.sub },
+    select: { id: true, email: true, username: true, role: true, is_active: true, created_at: true },
+  });
 
   if (!user) {
     res.status(404).json({ error: 'Not found', detail: 'User no longer exists.' });
     return;
   }
 
-  res.status(200).json({ user: userStore.toPublic(user) });
+  res.status(200).json({ user });
 });
 
 export default router;
