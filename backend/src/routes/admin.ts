@@ -7,7 +7,6 @@
  */
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
-import { ContractType } from '@prisma/client';
 import { requireAuth } from '../middleware/auth';
 import { requireAdmin } from '../middleware/requireAdmin';
 import { handleValidation } from '../middleware/validate';
@@ -19,7 +18,7 @@ const router = Router();
 router.use(requireAuth, requireAdmin);
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const VALID_CONTRACTS = Object.values(ContractType);
+const VALID_CONTRACTS = ['CDI', 'STAGE', 'ALTERNANCE', 'FREELANCE'];
 
 // ═══════════════════════════════════════════════════════════════
 //  USER MANAGEMENT
