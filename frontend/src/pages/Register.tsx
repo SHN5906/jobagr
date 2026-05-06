@@ -18,6 +18,7 @@ export default function Register() {
   const [email, setEmail]       = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm]   = useState('')
   const [pwdFocused, setPwdFocused] = useState(false)
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
@@ -31,6 +32,12 @@ export default function Register() {
     e.preventDefault()
     setFieldErrors({})
     setGlobalError('')
+
+    if (password !== confirm) {
+      setFieldErrors({ confirm: ['Les mots de passe ne correspondent pas.'] })
+      return
+    }
+
     setLoading(true)
     try {
       await register({ email, username, password })
@@ -292,6 +299,40 @@ export default function Register() {
 
               {/* Server-side password errors (si le checklist est masqué) */}
               {!showPwdChecklist && fieldErrors['password']?.map((msg, i) => (
+                <p key={i} className="mt-1.5 text-xs" style={{ color: '#F87171' }}>{msg}</p>
+              ))}
+            </div>
+
+            {/* Confirm password */}
+            <div>
+              <label
+                className="block font-mono text-[10px] uppercase tracking-[0.15em] mb-2"
+                style={{ color: 'var(--text-3)' }}
+              >
+                Confirmer le mot de passe
+              </label>
+              <input
+                type="password"
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
+                style={{
+                  background: 'var(--bg-surface)',
+                  border: `1px solid ${fieldErrors['confirm'] ? 'rgba(239,68,68,0.6)' : confirm && confirm === password ? 'rgba(74,222,128,0.4)' : 'var(--border)'}`,
+                  color: 'var(--text)',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = fieldErrors['confirm'] ? 'rgba(239,68,68,0.8)' : 'var(--accent)')}
+                onBlur={e  => (e.currentTarget.style.borderColor = fieldErrors['confirm'] ? 'rgba(239,68,68,0.6)' : confirm && confirm === password ? 'rgba(74,222,128,0.4)' : 'var(--border)')}
+              />
+              {confirm && confirm !== password && (
+                <p className="mt-1.5 text-xs" style={{ color: '#F87171' }}>Les mots de passe ne correspondent pas.</p>
+              )}
+              {confirm && confirm === password && (
+                <p className="mt-1.5 text-xs" style={{ color: '#4ade80' }}>Les mots de passe correspondent.</p>
+              )}
+              {fieldErrors['confirm']?.map((msg, i) => (
                 <p key={i} className="mt-1.5 text-xs" style={{ color: '#F87171' }}>{msg}</p>
               ))}
             </div>
