@@ -1,35 +1,55 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { ApiError } from '../services/api'
+
+const PWD_RULES = [
+  { label: 'Au moins 8 caractères',      test: (p: string) => p.length >= 8 },
+  { label: 'Une lettre majuscule',        test: (p: string) => /[A-Z]/.test(p) },
+  { label: 'Une lettre minuscule',        test: (p: string) => /[a-z]/.test(p) },
+  { label: 'Un chiffre',                  test: (p: string) => /[0-9]/.test(p) },
+  { label: 'Un caractère spécial',        test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+]
 
 export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
+
   const [email, setEmail]       = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError]       = useState('')
+  const [pwdFocused, setPwdFocused] = useState(false)
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
+  const [globalError, setGlobalError] = useState('')
   const [loading, setLoading]   = useState(false)
+
+  const pwdChecks = PWD_RULES.map(r => ({ label: r.label, ok: r.test(password) }))
+  const showPwdChecklist = pwdFocused || password.length > 0
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    setError('')
+    setFieldErrors({})
+    setGlobalError('')
     setLoading(true)
     try {
       await register({ email, username, password })
       navigate('/login')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Échec de l\'inscription')
+      if (err instanceof ApiError && err.fieldErrors.length > 0) {
+        const map: Record<string, string[]> = {}
+        for (const fe of err.fieldErrors) {
+          if (!map[fe.field]) map[fe.field] = []
+          map[fe.field].push(fe.message)
+        }
+        setFieldErrors(map)
+      } else {
+        setGlobalError(err instanceof Error ? err.message : "Échec de l'inscription")
+      }
     } finally {
       setLoading(false)
     }
   }
-
-  const fields = [
-    { id: 'email',    label: 'Email',           type: 'email',    value: email,    set: setEmail,    placeholder: 'toi@example.com' },
-    { id: 'username', label: 'Nom d\'utilisateur', type: 'text', value: username, set: setUsername, placeholder: 'sohan' },
-    { id: 'password', label: 'Mot de passe',    type: 'password', value: password, set: setPassword, placeholder: '••••••••' },
-  ] as const
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
@@ -49,7 +69,6 @@ export default function Register() {
           }}
         />
 
-        {/* Top: logo + meta */}
         <div className="relative z-10">
           <Link
             to="/"
@@ -59,7 +78,6 @@ export default function Register() {
             JOBRYX
           </Link>
 
-          {/* Beta badge */}
           <div
             className="mt-6 inline-flex items-center gap-2 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em]"
             style={{
@@ -72,7 +90,6 @@ export default function Register() {
             Beta · v0.1
           </div>
 
-          {/* Mini terminal */}
           <div
             className="mt-8 rounded-lg p-4 font-mono text-xs"
             style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)' }}
@@ -94,7 +111,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Middle/bottom: tagline + benefits */}
         <div className="relative z-10">
           <p
             className="font-display font-bold leading-tight"
@@ -107,7 +123,6 @@ export default function Register() {
             Email, pseudo, mot de passe. On bouge pas plus loin.
           </p>
 
-          {/* Benefits */}
           <ul className="mt-8 flex flex-col gap-3">
             {[
               'Accès aux 12 000+ offres tech',
@@ -127,7 +142,6 @@ export default function Register() {
             ))}
           </ul>
 
-          {/* Step progress */}
           <div className="mt-10 flex items-center gap-3">
             <span className="font-mono text-[10px] uppercase tracking-[0.15em]" style={{ color: 'var(--text-3)' }}>
               Étape 1/3
@@ -160,7 +174,8 @@ export default function Register() {
             Crée ton compte en 30 secondes.
           </p>
 
-          {error && (
+          {/* Global error (conflict, serveur, etc.) */}
+          {globalError && (
             <div
               className="mt-6 text-sm rounded-lg px-4 py-3"
               style={{
@@ -169,36 +184,117 @@ export default function Register() {
                 color: '#F87171',
               }}
             >
-              {error}
+              {globalError}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
-            {fields.map(f => (
-              <div key={f.id}>
-                <label
-                  className="block font-mono text-[10px] uppercase tracking-[0.15em] mb-2"
-                  style={{ color: 'var(--text-3)' }}
-                >
-                  {f.label}
-                </label>
-                <input
-                  type={f.type}
-                  value={f.value}
-                  onChange={e => f.set(e.target.value)}
-                  required
-                  placeholder={f.placeholder}
-                  className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
-                  style={{
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text)',
-                  }}
-                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                  onBlur={e  => (e.currentTarget.style.borderColor = 'var(--border)')}
-                />
-              </div>
-            ))}
+
+            {/* Email */}
+            <div>
+              <label
+                className="block font-mono text-[10px] uppercase tracking-[0.15em] mb-2"
+                style={{ color: 'var(--text-3)' }}
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                placeholder="toi@example.com"
+                className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
+                style={{
+                  background: 'var(--bg-surface)',
+                  border: `1px solid ${fieldErrors['email'] ? 'rgba(239,68,68,0.6)' : 'var(--border)'}`,
+                  color: 'var(--text)',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = fieldErrors['email'] ? 'rgba(239,68,68,0.8)' : 'var(--accent)')}
+                onBlur={e  => (e.currentTarget.style.borderColor = fieldErrors['email'] ? 'rgba(239,68,68,0.6)' : 'var(--border)')}
+              />
+              {fieldErrors['email']?.map((msg, i) => (
+                <p key={i} className="mt-1.5 text-xs" style={{ color: '#F87171' }}>{msg}</p>
+              ))}
+            </div>
+
+            {/* Username */}
+            <div>
+              <label
+                className="block font-mono text-[10px] uppercase tracking-[0.15em] mb-2"
+                style={{ color: 'var(--text-3)' }}
+              >
+                Nom d'utilisateur
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                required
+                placeholder="sohan"
+                className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
+                style={{
+                  background: 'var(--bg-surface)',
+                  border: `1px solid ${fieldErrors['username'] ? 'rgba(239,68,68,0.6)' : 'var(--border)'}`,
+                  color: 'var(--text)',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = fieldErrors['username'] ? 'rgba(239,68,68,0.8)' : 'var(--accent)')}
+                onBlur={e  => (e.currentTarget.style.borderColor = fieldErrors['username'] ? 'rgba(239,68,68,0.6)' : 'var(--border)')}
+              />
+              {fieldErrors['username']?.map((msg, i) => (
+                <p key={i} className="mt-1.5 text-xs" style={{ color: '#F87171' }}>{msg}</p>
+              ))}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label
+                className="block font-mono text-[10px] uppercase tracking-[0.15em] mb-2"
+                style={{ color: 'var(--text-3)' }}
+              >
+                Mot de passe
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
+                style={{
+                  background: 'var(--bg-surface)',
+                  border: `1px solid ${fieldErrors['password'] ? 'rgba(239,68,68,0.6)' : 'var(--border)'}`,
+                  color: 'var(--text)',
+                }}
+                onFocus={e => { setPwdFocused(true); e.currentTarget.style.borderColor = fieldErrors['password'] ? 'rgba(239,68,68,0.8)' : 'var(--accent)' }}
+                onBlur={e  => { setPwdFocused(false); e.currentTarget.style.borderColor = fieldErrors['password'] ? 'rgba(239,68,68,0.6)' : 'var(--border)' }}
+              />
+
+              {/* Live password checklist */}
+              {showPwdChecklist && (
+                <ul className="mt-3 flex flex-col gap-1.5">
+                  {pwdChecks.map(({ label, ok }) => (
+                    <li key={label} className="flex items-center gap-2 text-xs transition-colors" style={{ color: ok ? '#4ade80' : 'var(--text-3)' }}>
+                      <span
+                        className="flex-shrink-0 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-bold"
+                        style={{
+                          background: ok ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.05)',
+                          border: `1px solid ${ok ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                        }}
+                      >
+                        {ok ? '✓' : '·'}
+                      </span>
+                      {label}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Server-side password errors (si le checklist est masqué) */}
+              {!showPwdChecklist && fieldErrors['password']?.map((msg, i) => (
+                <p key={i} className="mt-1.5 text-xs" style={{ color: '#F87171' }}>{msg}</p>
+              ))}
+            </div>
 
             <button
               type="submit"
