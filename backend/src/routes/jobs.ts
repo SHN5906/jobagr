@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { query } from 'express-validator';
-import { ContractType } from '@prisma/client';
 import { requireAuth } from '../middleware/auth';
 import { handleValidation } from '../middleware/validate';
 import { prisma } from '../services/prisma';
@@ -9,7 +8,9 @@ const router = Router();
 
 router.use(requireAuth);
 
-const VALID_CONTRACTS = Object.values(ContractType);
+// Défini localement — les enums Prisma ne sont pas disponibles avec SQLite
+const VALID_CONTRACTS = ['CDI', 'STAGE', 'ALTERNANCE', 'FREELANCE'] as const;
+type ContractType = typeof VALID_CONTRACTS[number];
 
 // ─── GET /api/v1/jobs ─────────────────────────────────────────────────────────
 
@@ -48,8 +49,8 @@ router.get(
       ...(contract ? { contract } : {}),
       ...(q ? {
         OR: [
-          { title:   { contains: q, mode: 'insensitive' as const } },
-          { company: { contains: q, mode: 'insensitive' as const } },
+          { title:   { contains: q } },
+          { company: { contains: q } },
         ],
       } : {}),
     };
