@@ -95,7 +95,7 @@ router.post(
       return;
     }
 
-    const payload: TokenPayload = { sub: user.id, email: user.email, role: user.role };
+    const payload: TokenPayload = { sub: user.id, email: user.email, role: user.role as TokenPayload['role'] };
     const access_token = jwt.sign(payload, config.jwtSecret, {
       expiresIn: config.jwtExpiresIn as any,
       algorithm: 'HS256',
