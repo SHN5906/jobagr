@@ -49,14 +49,52 @@ export default function Register() {
           }}
         />
 
-        <Link
-          to="/"
-          className="relative z-10 font-display font-extrabold text-base tracking-widest"
-          style={{ color: 'var(--accent)', letterSpacing: '0.12em' }}
-        >
-          JOBRYX
-        </Link>
+        {/* Top: logo + meta */}
+        <div className="relative z-10">
+          <Link
+            to="/"
+            className="font-display font-extrabold text-base tracking-widest"
+            style={{ color: 'var(--accent)', letterSpacing: '0.12em' }}
+          >
+            JOBRYX
+          </Link>
 
+          {/* Beta badge */}
+          <div
+            className="mt-6 inline-flex items-center gap-2 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em]"
+            style={{
+              background: 'rgba(200,255,62,0.08)',
+              border: '1px solid rgba(200,255,62,0.25)',
+              color: 'var(--accent)',
+            }}
+          >
+            <span className="w-1 h-1 rounded-full animate-pulse" style={{ background: 'var(--accent)' }} />
+            Beta · v0.1
+          </div>
+
+          {/* Mini terminal */}
+          <div
+            className="mt-8 rounded-lg p-4 font-mono text-xs"
+            style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)' }}
+          >
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#FF5F57' }} />
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#FEBC2E' }} />
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#28C840' }} />
+              <span className="ml-2 text-[10px]" style={{ color: 'var(--text-3)' }}>~/jobryx</span>
+            </div>
+            <div style={{ color: 'var(--text-3)' }}>
+              <span style={{ color: 'var(--accent)' }}>$</span> jobryx --signup
+              <br />
+              <span style={{ color: 'var(--text-2)' }}>→ creating account...</span>
+              <br />
+              <span style={{ color: 'var(--accent)' }}>✓</span>{' '}
+              <span style={{ color: 'var(--text-2)' }}>welcome aboard</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Middle/bottom: tagline + benefits */}
         <div className="relative z-10">
           <p
             className="font-display font-bold leading-tight"
@@ -69,15 +107,36 @@ export default function Register() {
             Email, pseudo, mot de passe. On bouge pas plus loin.
           </p>
 
-          {/* Decorative dots */}
-          <div className="mt-10 flex gap-2">
-            {[...Array(5)].map((_, i) => (
-              <span
-                key={i}
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ background: i === 0 ? 'var(--accent)' : 'var(--border-2)' }}
-              />
+          {/* Benefits */}
+          <ul className="mt-8 flex flex-col gap-3">
+            {[
+              'Accès aux 12 000+ offres tech',
+              'Score de pertinence personnalisé',
+              'Filtres avancés & favoris',
+              'Aucune pub, aucun spam',
+            ].map(b => (
+              <li key={b} className="flex items-center gap-3 text-sm" style={{ color: 'var(--text-2)' }}>
+                <span
+                  className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center font-bold text-[10px]"
+                  style={{ background: 'rgba(200,255,62,0.12)', color: 'var(--accent)' }}
+                >
+                  ✓
+                </span>
+                {b}
+              </li>
             ))}
+          </ul>
+
+          {/* Step progress */}
+          <div className="mt-10 flex items-center gap-3">
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em]" style={{ color: 'var(--text-3)' }}>
+              Étape 1/3
+            </span>
+            <div className="flex-1 flex gap-1">
+              <span className="flex-1 h-0.5 rounded-full" style={{ background: 'var(--accent)' }} />
+              <span className="flex-1 h-0.5 rounded-full" style={{ background: 'var(--border-2)' }} />
+              <span className="flex-1 h-0.5 rounded-full" style={{ background: 'var(--border-2)' }} />
+            </div>
           </div>
         </div>
       </div>
