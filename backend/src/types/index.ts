@@ -1,19 +1,8 @@
-export type Role = 'user' | 'admin';
-
-export interface User {
-  id:         string;
-  email:      string;
-  username:   string;
-  role:       Role;
-  is_active:  boolean;
-  created_at: string;
-  password_hash: string;
-}
-
-export type PublicUser = Omit<User, 'password_hash'>;
+// Role aligns with Prisma enum values
+export type Role = 'USER' | 'ADMIN';
 
 export interface TokenPayload {
-  sub:   string;  // user id
+  sub:   string;
   email: string;
   role:  Role;
 }
