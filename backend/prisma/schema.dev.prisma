@@ -1,0 +1,41 @@
+// Schema SQLite pour le développement local (sans Docker).
+// Enums et tableaux remplacés par String (SQLite ne les supporte pas).
+// Pour la production PostgreSQL: schema.prisma + docker compose.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  username      String   @unique
+  password_hash String
+  role          String   @default("USER")
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  @@index([email])
+}
+
+model Offer {
+  id         String   @id @default(uuid())
+  title      String
+  company    String
+  location   String
+  work_mode  String
+  contract   String
+  salary     String?
+  tags       String   @default("[]")   // JSON stringifié
+  score      Int      @default(0)
+  is_active  Boolean  @default(true)
+  source     String?
+  posted_at  DateTime
+  created_at DateTime @default(now())
+}

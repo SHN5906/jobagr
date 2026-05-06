@@ -2,7 +2,7 @@ export interface User {
   id: string
   email: string
   username: string
-  role: 'user' | 'admin'
+  role: 'USER' | 'ADMIN'
   is_active: boolean
   created_at: string
 }
