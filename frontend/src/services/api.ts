@@ -2,6 +2,23 @@ import type { LoginCredentials, RegisterCredentials, TokenResponse, User } from 
 
 const BASE = '/api/v1'
 
+export interface FieldError {
+  field: string
+  message: string
+}
+
+export class ApiError extends Error {
+  status: number
+  fieldErrors: FieldError[]
+
+  constructor(message: string, status: number, fieldErrors: FieldError[] = []) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.fieldErrors = fieldErrors
+  }
+}
+
 export interface Offer {
   id: string
   title: string
@@ -36,8 +53,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   })
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ detail: 'Unknown error' }))
-    throw new Error(error.detail ?? 'Request failed')
+    const body = await res.json().catch(() => ({ detail: 'Erreur inconnue' }))
+    if (Array.isArray(body.detail)) {
+      throw new ApiError('Validation échouée', res.status, body.detail as FieldError[])
+    }
+    throw new ApiError(body.detail ?? 'La requête a échoué', res.status)
   }
   return res.json()
 }
