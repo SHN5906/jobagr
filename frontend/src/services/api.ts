@@ -37,12 +37,15 @@ function authHeader(): Record<string, string> {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
     ...options,
+    // Merge Content-Type after the spread so caller-provided `headers`
+    // never wipes it out — fixes a subtle bug where POSTs with auth headers
+    // arrived without Content-Type and the body was rejected as empty.
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
   })
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: 'Unknown error' }))
-    throw new Error(error.detail ?? 'Request failed')
+    throw new Error(error.detail ?? error.error ?? 'Request failed')
   }
   return res.json()
 }

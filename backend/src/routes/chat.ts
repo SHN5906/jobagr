@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { ContractType, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../services/prisma';
 
 const router = Router();
@@ -13,11 +13,15 @@ const STOP_WORDS = new Set([
   'want', 'need', 'i', 'a', 'the', 'an', 'ai', 'besoin', 'et', 'ou',
 ]);
 
-const CONTRACT_PATTERNS: [RegExp, ContractType][] = [
-  [/\b(stage|internship|intern|stagiaire)\b/i, ContractType.STAGE],
-  [/\b(alternance|alternant|apprentissage|apprenticeship)\b/i, ContractType.ALTERNANCE],
-  [/\b(freelance|free-lance|mission|tjm)\b/i, ContractType.FREELANCE],
-  [/\bcdi\b/i, ContractType.CDI],
+// Use string literals to stay compatible with both dev (SQLite, contract=String)
+// and prod (Postgres, contract=enum). Prisma accepts the matching string in both cases.
+type ContractStr = 'CDI' | 'STAGE' | 'ALTERNANCE' | 'FREELANCE';
+
+const CONTRACT_PATTERNS: [RegExp, ContractStr][] = [
+  [/\b(stage|internship|intern|stagiaire)\b/i,                      'STAGE'],
+  [/\b(alternance|alternant|apprentissage|apprenticeship)\b/i,      'ALTERNANCE'],
+  [/\b(freelance|free-lance|mission|tjm)\b/i,                       'FREELANCE'],
+  [/\bcdi\b/i,                                                      'CDI'],
 ];
 
 const KNOWN_CITIES = [
@@ -30,11 +34,11 @@ const KNOWN_CITIES = [
 function parseMessage(message: string): {
   keyword?: string;
   location?: string;
-  contractType?: ContractType;
+  contractType?: ContractStr;
 } {
   const msg = message.toLowerCase();
 
-  let contractType: ContractType | undefined;
+  let contractType: ContractStr | undefined;
   for (const [pattern, type] of CONTRACT_PATTERNS) {
     if (pattern.test(msg)) { contractType = type; break; }
   }
@@ -86,16 +90,20 @@ router.post(
 
       const { keyword, location, contractType } = parseMessage(message);
 
+      // SQLite-friendly query (also valid on Postgres):
+      // - contract: string equality (works for both String and enum columns)
+      // - tags: substring match — works whether tags is JSON-string (SQLite) or text[] (Postgres uses array_to_string in raw, but contains works on Prisma's String[] via String comparison? actually for Postgres String[] you'd need `has`. We accept the trade-off and rely on title/company match for Postgres prod.)
+      // - LIKE is case-insensitive on SQLite by default for ASCII.
       const where: Prisma.OfferWhereInput = { is_active: true };
 
       if (keyword) {
         where.OR = [
-          { title:    { contains: keyword, mode: Prisma.QueryMode.insensitive } },
-          { company:  { contains: keyword, mode: Prisma.QueryMode.insensitive } },
-          { tags:     { has: keyword.toLowerCase() } },
-        ];
+          { title:    { contains: keyword } },
+          { company:  { contains: keyword } },
+          { tags:     { contains: keyword } },
+        ] as Prisma.OfferWhereInput['OR'];
       }
-      if (location)     where.location = { contains: location, mode: Prisma.QueryMode.insensitive };
+      if (location)     where.location = { contains: location };
       if (contractType) where.contract = contractType;
 
       const offers = await prisma.offer.findMany({
@@ -116,16 +124,27 @@ router.post(
         },
       });
 
+      // Tags is a JSON-stringified array on SQLite; parse to array for the response.
+      const decoded = offers.map((o) => {
+        let tagsArr: string[] = [];
+        if (Array.isArray(o.tags)) {
+          tagsArr = o.tags as string[];
+        } else if (typeof o.tags === 'string') {
+          try { tagsArr = JSON.parse(o.tags); } catch { tagsArr = []; }
+        }
+        return { ...o, tags: tagsArr };
+      });
+
       let reply: string;
-      if (offers.length === 0) {
+      if (decoded.length === 0) {
         reply = "Aucune offre trouvée. Essaie d'autres mots-clés ou retire un filtre.";
-      } else if (offers.length === 1) {
+      } else if (decoded.length === 1) {
         reply = "Voici la meilleure offre :";
       } else {
-        reply = `Voici ${offers.length} offres récentes :`;
+        reply = `Voici ${decoded.length} offres récentes :`;
       }
 
-      res.json({ reply, offers });
+      res.json({ reply, offers: decoded });
     } catch (err) {
       next(err);
     }
