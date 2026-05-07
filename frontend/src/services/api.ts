@@ -25,6 +25,11 @@ export interface JobsResponse {
   limit: number
 }
 
+export interface ChatResponse {
+  reply: string
+  offers: Offer[]
+}
+
 function authHeader(): Record<string, string> {
   const token = localStorage.getItem('token')
   return token ? { Authorization: `Bearer ${token}` } : {}
@@ -62,4 +67,11 @@ export const apiClient = {
     const query = qs.toString() ? `?${qs}` : ''
     return request<JobsResponse>(`/jobs${query}`, { headers: authHeader() })
   },
+
+  chat: (message: string) =>
+    request<ChatResponse>('/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+      headers: authHeader(),
+    }),
 }

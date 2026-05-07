@@ -8,6 +8,7 @@ import { apiLimiter } from './middleware/rateLimiter';
 import authRouter from './routes/auth';
 import jobsRouter from './routes/jobs';
 import adminRouter from './routes/admin';
+import chatRouter from './routes/chat';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api', apiLimiter);
 app.use('/api/v1/auth',  authRouter);
 app.use('/api/v1/jobs',  jobsRouter);
 app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/chat',  chatRouter);
 
 // ─── Health check (unauthenticated) ──────────────────────────────────────────
 app.get('/health', (_req, res) => {
