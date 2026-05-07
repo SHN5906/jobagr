@@ -2,6 +2,23 @@ import type { LoginCredentials, RegisterCredentials, TokenResponse, User } from 
 
 const BASE = '/api/v1'
 
+export interface FieldError {
+  field: string
+  message: string
+}
+
+export class ApiError extends Error {
+  status: number
+  fieldErrors: FieldError[]
+
+  constructor(message: string, status: number, fieldErrors: FieldError[] = []) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.fieldErrors = fieldErrors
+  }
+}
+
 export interface Offer {
   id: string
   title: string
@@ -38,14 +55,14 @@ function authHeader(): Record<string, string> {
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...options,
-    // Merge Content-Type after the spread so caller-provided `headers`
-    // never wipes it out — fixes a subtle bug where POSTs with auth headers
-    // arrived without Content-Type and the body was rejected as empty.
     headers: { 'Content-Type': 'application/json', ...options?.headers },
   })
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ detail: 'Unknown error' }))
-    throw new Error(error.detail ?? error.error ?? 'Request failed')
+    const body = await res.json().catch(() => ({ detail: 'Erreur inconnue' }))
+    if (Array.isArray(body.detail)) {
+      throw new ApiError('Validation échouée', res.status, body.detail as FieldError[])
+    }
+    throw new ApiError(body.detail ?? body.error ?? 'La requête a échoué', res.status)
   }
   return res.json()
 }
