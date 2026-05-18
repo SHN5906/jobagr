@@ -11,6 +11,7 @@ import { requireAuth } from '../middleware/auth';
 import { requireAdmin } from '../middleware/requireAdmin';
 import { handleValidation } from '../middleware/validate';
 import { prisma } from '../services/prisma';
+import { runIngestion } from '../services/ingestion';
 
 const router = Router();
 
@@ -192,5 +193,21 @@ router.delete(
     res.status(204).send();
   }
 );
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA INGESTION
+// ═══════════════════════════════════════════════════════════════
+
+// POST /api/v1/admin/ingest — trigger WeLoveDevs ingestion manually
+router.post('/ingest', async (_req: import('express').Request, res: import('express').Response) => {
+  const result = await runIngestion();
+
+  if (result.error) {
+    res.status(500).json({ error: 'Ingestion failed', detail: result.error, result });
+    return;
+  }
+
+  res.status(200).json({ message: 'Ingestion completed.', result });
+});
 
 export default router;
