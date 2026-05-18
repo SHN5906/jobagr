@@ -14,7 +14,7 @@ const OFFERS = [
   { title: 'Stage Data Engineer',  company: 'Dataiku',   location: 'Remote',    work_mode: 'Full remote', contract: 'STAGE',      salary: '1 400 €',  tags: ['Spark','dbt','Airflow'],          score: 86, source: 'welovedevs', posted_at: new Date('2026-04-26') },
   { title: 'Frontend React Senior',company: 'Doctolib',  location: 'Levallois', work_mode: 'Hybride',     contract: 'CDI',        salary: '60–80k €', tags: ['React','TypeScript','Tailwind'],  score: 82, source: 'welovedevs', posted_at: new Date('2026-04-25') },
   { title: 'Alternance ML Engineer',company:'Mistral AI', location: 'Paris',    work_mode: 'Hybride',     contract: 'ALTERNANCE', salary: null,       tags: ['PyTorch','CUDA','Python'],        score: 78, source: 'welovedevs', posted_at: new Date('2026-04-24') },
-];
+] as const;
 
 async function main() {
   const hash = await bcrypt.hash('Admin@jobryx1!', 12);
@@ -28,7 +28,7 @@ async function main() {
   await prisma.offer.deleteMany({});
   for (const o of OFFERS) {
     await prisma.offer.create({
-      data: { ...o, tags: JSON.stringify(o.tags), salary: o.salary ?? null },
+      data: { ...o, tags: [...o.tags], salary: o.salary ?? null },
     });
   }
   console.log(`✓ Seeded ${OFFERS.length} offers.`);
