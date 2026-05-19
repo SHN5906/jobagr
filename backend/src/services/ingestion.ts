@@ -60,14 +60,10 @@ export async function runIngestion(): Promise<IngestionResult> {
       const salary                 = normalizeSalary(job.salary);
       const location               = normalizeLocation(job.location);
       const work_mode              = normalizeWorkMode(job.workMode);
-      const rawTags: string[] = [
+      const tags: string[] = [
         ...(job.technologies ?? []),
         ...(job.skills       ?? []),
       ].filter(Boolean);
-
-      // SQLite dev schema stores tags as JSON string; PostgreSQL uses String[]
-      const isSQLite = (process.env['DATABASE_URL'] ?? '').startsWith('file:');
-      const tags = isSQLite ? JSON.stringify(rawTags) : rawTags as unknown as string;
 
       await prisma.offer.create({
         data: {
