@@ -28,7 +28,7 @@ docker compose up -d
 | Backend API | localhost:3000 | API REST sécurisée |
 | Postgres | localhost:5432 | Base de données |
 
-**Compte admin de démo** (créé par le seed) : `<SEED_ADMIN_EMAIL>` / `<SEED_ADMIN_PASSWORD>`
+**Compte admin** : créé par le seed à partir de `SEED_ADMIN_EMAIL` et `SEED_ADMIN_PASSWORD` (voir `backend/.env.example`).
 
 ---
 

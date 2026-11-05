@@ -87,11 +87,11 @@ curl localhost:3000/api/v1/health
 
 ```bash
 docker compose exec backend npm run db:migrate:prod
-docker compose exec backend npm run db:seed
+docker compose exec -e SEED_ADMIN_EMAIL=<email> -e SEED_ADMIN_PASSWORD=<mot-de-passe> backend npm run db:seed
 ```
 
 Cela applique les migrations et insère :
-- 1 utilisateur admin (`<SEED_ADMIN_EMAIL>` / `<SEED_ADMIN_PASSWORD>`)
+- 1 utilisateur admin (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`)
 - ~8 offres réalistes pour tester
 
 ---

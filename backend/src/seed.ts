@@ -17,11 +17,16 @@ const OFFERS = [
 ] as const;
 
 async function main() {
-  const hash = await bcrypt.hash('<SEED_ADMIN_PASSWORD>', 12);
+  const { SEED_ADMIN_EMAIL: adminEmail, SEED_ADMIN_PASSWORD: adminPassword } = process.env;
+  if (!adminEmail || !adminPassword) {
+    throw new Error('SEED_ADMIN_EMAIL et SEED_ADMIN_PASSWORD sont requis');
+  }
+
+  const hash = await bcrypt.hash(adminPassword, 12);
   const admin = await prisma.user.upsert({
-    where:  { email: '<SEED_ADMIN_EMAIL>' },
+    where:  { email: adminEmail },
     update: {},
-    create: { email: '<SEED_ADMIN_EMAIL>', username: 'admin', password_hash: hash, role: 'ADMIN' },
+    create: { email: adminEmail, username: 'admin', password_hash: hash, role: 'ADMIN' },
   });
   console.log(`✓ Admin: ${admin.email}`);
 

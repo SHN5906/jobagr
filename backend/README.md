@@ -42,11 +42,9 @@ npm run dev
 
 Le backend écoute sur **http://localhost:3000**.
 
-## Comptes par défaut (après seed)
+## Compte admin (seed)
 
-| Rôle  | Email               | Mot de passe    |
-|-------|---------------------|-----------------|
-| ADMIN | <SEED_ADMIN_EMAIL>    | <SEED_ADMIN_PASSWORD>  |
+Le seed crée le compte admin à partir de `SEED_ADMIN_EMAIL` et `SEED_ADMIN_PASSWORD`, à définir dans `.env`. Il s'arrête si l'une des deux manque.
 
 ## Scripts disponibles
 
